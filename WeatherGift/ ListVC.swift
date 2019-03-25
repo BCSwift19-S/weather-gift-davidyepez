@@ -35,6 +35,16 @@ class ListVC: UIViewController {
             destination.locationsArray = locationsArray
         }
     }
+    
+    func saveLocation() {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(locationsArray) {
+            UserDefaults.standard.set(encoded, value(forKey: "locationsArray"))
+            
+        } else {
+            print("ERROR: saving encoded did not work.")
+        }
+    }
 
 
     @IBAction func editBarButtonPressed(_ sender: UIBarButtonItem) {
@@ -73,6 +83,7 @@ extension ListVC: UITableViewDelegate, UITableViewDataSource {
         if editingStyle == .delete {
             locationsArray.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
+            saveLocation()
         }
     
     }
@@ -81,6 +92,7 @@ extension ListVC: UITableViewDelegate, UITableViewDataSource {
         let itemToMove = locationsArray[sourceIndexPath.row]
         locationsArray.remove(at: sourceIndexPath)
         locationsArray.insert(itemToMove, at: destinationIndexPath.row)
+        saveLocation()
         
     }
     
@@ -99,13 +111,14 @@ extension ListVC: UITableViewDelegate, UITableViewDataSource {
     
     func updateTable(place: GMSPlace) {
         let newIndexPath = IndexPath(row: locationsArray.count, section: 0)
-        var newWeatherLocation = weatherLocation()
-        newWeatherLocation.name = place.name
         let latitude = place.coordinate.latitude
         let longitude = place.coordinate.longitude
-        newWeatherLocation.coordinates = "\(latitude),\(longitude)"
+        let newCoordinates = "\(latitude),\(longitude)"
+        
+        let newWeatherLocation = newWeatherLocation(name: place.name, coordinates: newCoordinates)
         locationsArray.append(newWeatherLocation)
         tableView.insertRows(at: [newIndexPath], with: .automatic)
+        saveLocation()
     }
     
 }
